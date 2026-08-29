@@ -70,13 +70,16 @@ struct ScopeRingBuffer
 /// the plot it targets can never disagree about the scale.
 enum ScopePlot
 {
-    /// Auto-scaling y-window: spans at least 0...1, widened to cover the
-    /// history and any extra values (e.g. threshold lines), with a small
-    /// padding so the trace never sits on the plot edge.
+    /// Auto-scaling y-window: fits the history and any extra values
+    /// (e.g. threshold lines), with a small padding so the trace never
+    /// sits on the plot edge. Values that all lie within 0...1 read as a
+    /// normalised signal and keep the full 0...1 frame (also the empty
+    /// fallback); anything outside fits the data instead, so signals far
+    /// from zero aren't pinned to one edge.
     static func yRange(history: ScopeRingBuffer, including extraValues: [Float] = []) -> (yMin: Float, yMax: Float)
     {
-        var minValue: Float = 0
-        var maxValue: Float = 1
+        var minValue: Float = .greatestFiniteMagnitude
+        var maxValue: Float = -.greatestFiniteMagnitude
         for v in extraValues where v.isFinite
         {
             minValue = min(minValue, v); maxValue = max(maxValue, v)
@@ -85,6 +88,10 @@ enum ScopePlot
         {
             let v = history[i]
             minValue = min(minValue, v); maxValue = max(maxValue, v)
+        }
+        if minValue > maxValue || (minValue >= 0 && maxValue <= 1)
+        {
+            minValue = 0; maxValue = 1
         }
         let padding = max(0.02, (maxValue - minValue) * 0.05)
         return (minValue - padding, maxValue + padding)
