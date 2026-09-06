@@ -6,6 +6,8 @@ Fabric's core nodes are supplied by an embedded plugin implementation compiled i
 
 External plugins are `.fabricplugin` bundles loaded after the embedded core plugin.
 
+A complete, buildable reference plugin lives in [Fabric-Sample-Plugin](https://github.com/Fabric-Project/Fabric-Sample-Plugin), showcasing the bundle layout, `Info.plist` keys and principal class described below.
+
 ## Bundle Layout
 
 ```text
