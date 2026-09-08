@@ -14,8 +14,8 @@ import Metal
 /// input, Geometry output, and publication lifecycle.
 ///
 /// External plug-ins can subclass this type, provide ``geometry``, and override
-/// ``updateGeometry(renderer:executionInfo:renderPassDescriptor:commandBuffer:)``
-/// to perform their specialized geometry work.
+/// ``execute(renderer:executionInfo:renderPassDescriptor:commandBuffer:)`` when
+/// they need specialized geometry work.
 open class BaseGeometryNode : Node
 {
     override open class var name:String { "Geometry" }
@@ -41,7 +41,7 @@ open class BaseGeometryNode : Node
         fatalError("Subclasses must override geometry")
     }
             
-    open func evaluate(geometry:Geometry, atTime:TimeInterval) -> Bool
+    public func evaluate(geometry:Geometry, atTime:TimeInterval) -> Bool
     {
         var shouldOutput = false
         
@@ -61,28 +61,9 @@ open class BaseGeometryNode : Node
         return shouldOutput
     }
     
-    /// Updates the geometry for one execution pass and reports whether the
-    /// stable geometry instance needs to be published again.
-    ///
-    /// The default implementation preserves the existing Fabric geometry-node
-    /// behavior. Plug-ins can override this throwing hook when their update
-    /// requires the renderer, command buffer, or recoverable error reporting.
-    /// Call `super` so Primitive changes and standard dirty-state publication
-    /// remain active.
-    open func updateGeometry(renderer: GraphRenderer,
-                             executionInfo: GraphExecutionInfo,
-                             renderPassDescriptor: MTLRenderPassDescriptor,
-                             commandBuffer: MTLCommandBuffer) throws -> Bool
-    {
-        evaluate(geometry: geometry, atTime: executionInfo.timing.time)
-    }
-
     override open func execute(renderer:GraphRenderer, executionInfo:GraphExecutionInfo, renderPassDescriptor: MTLRenderPassDescriptor, commandBuffer: MTLCommandBuffer) throws
     {
-        let shouldOutput = try updateGeometry(renderer: renderer,
-                                              executionInfo: executionInfo,
-                                              renderPassDescriptor: renderPassDescriptor,
-                                              commandBuffer: commandBuffer)
+        let shouldOutput = self.evaluate(geometry: self.geometry, atTime: executionInfo.timing.time)
 
         if shouldOutput
         {

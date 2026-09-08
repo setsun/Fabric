@@ -28,17 +28,17 @@ private final class PluginGeometryNode: BaseGeometryNode
     override var geometry: Geometry { triangleGeometry }
 
     private lazy var triangleGeometry = TriangleGeometry(context: context)
-    private(set) var updateInvocationCount = 0
+    private(set) var executeInvocationCount = 0
 
-    override func updateGeometry(
+    override func execute(
         renderer: GraphRenderer,
         executionInfo: GraphExecutionInfo,
         renderPassDescriptor: MTLRenderPassDescriptor,
         commandBuffer: MTLCommandBuffer
-    ) throws -> Bool
+    ) throws
     {
-        updateInvocationCount += 1
-        return try super.updateGeometry(
+        executeInvocationCount += 1
+        try super.execute(
             renderer: renderer,
             executionInfo: executionInfo,
             renderPassDescriptor: renderPassDescriptor,
@@ -73,6 +73,6 @@ struct BaseGeometryNodePluginAPITests
         #expect(node.inputPrimitiveType.value == "Triangle")
         #expect(node.primitiveType() == .triangle)
         #expect(node.outputGeometry.value === node.geometry)
-        #expect(node.updateInvocationCount == 1)
+        #expect(node.executeInvocationCount == 1)
     }
 }
