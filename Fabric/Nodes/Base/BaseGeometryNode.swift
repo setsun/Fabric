@@ -10,15 +10,21 @@ import Satin
 import simd
 import Metal
 
-public class BaseGeometryNode : Node
+/// Base implementation for geometry providers, including the standard Primitive
+/// input, Geometry output, and publication lifecycle.
+///
+/// External plug-ins can subclass this type, provide ``geometry``, and override
+/// ``execute(renderer:executionInfo:renderPassDescriptor:commandBuffer:)`` when
+/// they need specialized geometry work.
+open class BaseGeometryNode : Node
 {
-    override public class var name:String { "Geometry" }
-    override public class var nodeType:Node.NodeType { .Geometery }
-    override public class var nodeExecutionMode: Node.ExecutionMode { .Provider }
-    override public class var nodeTimeMode: Node.TimeMode { .None }
-    override public class var nodeDescription: String { "Provides \(Self.name)"}
+    override open class var name:String { "Geometry" }
+    override open class var nodeType:Node.NodeType { .Geometery }
+    override open class var nodeExecutionMode: Node.ExecutionMode { .Provider }
+    override open class var nodeTimeMode: Node.TimeMode { .None }
+    override open class var nodeDescription: String { "Provides \(Self.name)"}
 
-    override public class func registerPorts(context: Context) -> [(name: String, port: Port)] {
+    override open class func registerPorts(context: Context) -> [(name: String, port: Port)] {
         let ports = super.registerPorts(context: context)
         
         return ports +
@@ -55,7 +61,7 @@ public class BaseGeometryNode : Node
         return shouldOutput
     }
     
-    public override func execute(renderer:GraphRenderer, executionInfo:GraphExecutionInfo, renderPassDescriptor: MTLRenderPassDescriptor, commandBuffer: MTLCommandBuffer) throws
+    override open func execute(renderer:GraphRenderer, executionInfo:GraphExecutionInfo, renderPassDescriptor: MTLRenderPassDescriptor, commandBuffer: MTLCommandBuffer) throws
     {
         let shouldOutput = self.evaluate(geometry: self.geometry, atTime: executionInfo.timing.time)
 
@@ -71,7 +77,8 @@ public class BaseGeometryNode : Node
         }
     }
     
-    internal func primitiveType() -> MTLPrimitiveType
+    /// Resolves the standard Primitive input to its Metal primitive type.
+    public func primitiveType() -> MTLPrimitiveType
     {
         switch self.inputPrimitiveType.value
         {
